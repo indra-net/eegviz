@@ -1,0 +1,21 @@
+{
+  "name": "eegviz-server",
+  "version": "0.1.0",
+  "dependencies": {
+    "underscore": "~1.7.0",
+    "socket.io": "~1.1.0",
+    "express": "^4.7.4",
+    "mongoose": "~3.8.14",
+    "sequelize": "~1.7.9",
+    "mysql": "~2.4.2",
+    "pg": "~3.4.0"
+  },
+"engines": {
+    "node": "0.10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/indra-net/eegviz"
+  },
+  "license": "MIT"
+}
