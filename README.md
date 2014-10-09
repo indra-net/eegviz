@@ -1,0 +1,4 @@
+eegviz
+======
+
+collective eeg visualization 
