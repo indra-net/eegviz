@@ -8,7 +8,8 @@
     "mongoose": "~3.8.14",
     "sequelize": "~1.7.9",
     "mysql": "~2.4.2",
-    "pg": "~3.4.0"
+    "pg": "~3.4.0",
+    "body-parser": "~1.9.0"
   },
   "engines": {
     "node": "0.10.x"
