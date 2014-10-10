@@ -1,4 +1,4 @@
-// setup
+//  0  setup
 var _ = require('underscore'),
     http = require('http'),
     path = require('path')
@@ -16,7 +16,8 @@ var pg = require('pg').native;
 
 
 
-//   1    models
+
+//  1   data 
 var Reading = sequelize.define('Reading', {
   username: Sequelize.STRING,
   start_time: Sequelize.DATE,
@@ -27,9 +28,26 @@ var Reading = sequelize.define('Reading', {
   eeg_power: Sequelize.ARRAY(Sequelize.INTEGER),
 }); Reading.sync()
 
+function processData(d) {
+  var reading = Reading.create({
+    username:             d.username,
+    start_time:           d.start_time,
+    end_time:             d.end_time,
+    signal_quality:       d.signal_quality,
+    raw_values:           d.raw_values,
+    attention_esense:     d.attention_esense,
+    meditation_esense:    d.meditation_esense,
+    eeg_power:            d.eeg_power,
+  }).error(function(err) {
+            console.log(err)
+  }).success(function() {
+            console.log(d.username)
+  });
+}
 
 
-//    2    routes
+
+//  2    routes
 app.get('/handshake', function(req, res){
   res.json({time:new Date()} )
 });
@@ -48,22 +66,3 @@ http.listen(config.port_number, function(){
   console.log('listening on ' + config.port_number);
 });
 
-
-
-//    3    data processing workflow
-function processData(d) {
-  var reading = Reading.create({
-          username:             d.username,
-          start_time:           d.start_time,
-          end_time:             d.end_time,
-  	  signal_quality:       d.signal_quality,
-          raw_values:           d.raw_values,
-          attention_esense:     d.attention_esense,
-          meditation_esense:    d.meditation_esense,
-          eeg_power:            d.eeg_power,
-  }).error(function(err) {
-            console.log(err)
-  }).success(function() {
-            console.log(d.username)
-  });
-}
