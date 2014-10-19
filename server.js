@@ -1,4 +1,4 @@
-// 0  setup
+//  Setup
 var _ = require('underscore'),
     http = require('http'),
     path = require('path')
@@ -9,16 +9,17 @@ var express = require('express'),
 var app = express(); app.use(bodyParser.json())
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var moment = require('moment');
+var _ = require('underscore');
 
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize(config.database.db_name,config.database.username,config.database.password, 
 	{port:config.database.db_port, dialect: config.database.db_dialect,logging:false})
+
 var pg = require('pg').native;
 
-var recent_data = { }
+//  Data Architecture
 
-
-//  1   data 
 var Reading = sequelize.define('Reading', {
   username: Sequelize.STRING,
   start_time: Sequelize.DATE,
@@ -30,8 +31,9 @@ var Reading = sequelize.define('Reading', {
   //signal_quality: Sequelize.INTEGER,
 }); Reading.create(); Reading.sync()
 
+var connectedIndraClients = {};
 
-//  2    routes
+//  Routes
 app.get('/handshake', function(req, res){
   res.json({time:new Date()} )
 });
@@ -45,34 +47,26 @@ app.route('/')
   processData(req.body)
   res.json({status:'ok'}); //return confirmation of receipt
 })
-
-io.on('connection', function(socket) {
-   
-   socket.emit('attention_average', function() {
-       // this is where you send average attention to a new user
-   })
-   
-   socket.on('whats the data', function() {
-      socket.emit('heres the data', JSON.stringify(recent_data))
-    })
-  
-   socket.on('send_application_type', function(msg) {
-      socket.application_type = msg;
-      console.log ('requested application type: ' + socket.application_type);
-    })
-
-    socket.on('disconnect', function() {
-       //for example: remove socket.username from userlist
-    })
- 
-   console.log('new connection from webpage');
+app.route('/chart')
+.get(function(req, res, next){
+  res.sendFile('chart.html', 
+    { root: path.join(__dirname, 'public') });
 })
 
 http.listen(config.port_number, function(){
-  console.log('listening on ' + config.port_number);
+  console.log('server up. listening on ' + config.port_number);
 });
 
+//  Socket.io
 
+io.on('connection', function(socket) {
+  
+  socket.on('disconnect', function() {
+  })
+
+})
+
+// Handle Data
 
 function processData(d) {
   // store in database
@@ -88,21 +82,30 @@ function processData(d) {
   }).error(function(err) {
     console.log(err)
   }).success(function() {
-    // safe to store in object
-    // TODO: send to python and store in object there? feature extraction?
-    recent_data[d.username] = { attention:d.attention_esense,
-                                time:d.end_time,}
-    console.log(d.username)
-  });
+
+    connectedIndraClients[d.username] = moment();
+    
+    io.emit('indraData', "User: " + d.username + " ... Attention: " + d.attention_esense)
+  
+  }); 
 }
-   
 
+setInterval(function() {
 
+  recentUsers = [];
 
+  for (var userKey in connectedIndraClients) {
+    if (connectedIndraClients[userKey].diff() < -15000) {
+      delete connectedIndraClients[userKey];
+    }
+    
+    recentUsers.push(userKey);
 
+  }
 
+  io.emit('recentUsers', recentUsers);
 
-
+}, 15000)
 
 
 

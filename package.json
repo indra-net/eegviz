@@ -2,14 +2,15 @@
   "name": "eegviz-server",
   "version": "0.1.0",
   "dependencies": {
-    "underscore": "~1.7.0",
-    "socket.io": "~1.1.0",
+    "body-parser": "~1.9.0",
     "express": "~4.8.8",
+    "moment": "^2.8.3",
     "mongoose": "~3.8.14",
-    "sequelize": "~1.7.9",
     "mysql": "~2.4.2",
     "pg": "~3.4.0",
-    "body-parser": "~1.9.0"
+    "sequelize": "~1.7.9",
+    "socket.io": "~1.1.0",
+    "underscore": "~1.7.0"
   },
   "engines": {
     "node": "0.10.x"
