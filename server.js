@@ -74,7 +74,7 @@ function processData(d) {
     username:             d.username,
     start_time:           d.start_time,
     end_time:             d.end_time,
-    //signal_quality:       d.signal_quality,
+    signal_quality:       d.signal_quality,
     raw_values:           d.raw_values,
     attention_esense:     d.attention_esense,
     meditation_esense:    d.meditation_esense,
