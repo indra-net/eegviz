@@ -19,7 +19,7 @@
       var socket = io();
 
       socket.on('indraData', function(indraData) {
-        console.log(indraData);
+        console.log(JSON.stringify(indraData));
       })
 
       socket.on('recentUsers', function(recentUsers) {

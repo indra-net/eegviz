@@ -1,22 +1,21 @@
 //  Setup
 var _ = require('underscore'),
-    http = require('http'),
-    path = require('path')
-var config = require('./config')
+    path = require('path'),
+    config = require('./config'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    app = express(),
+    http = require('http').Server(app),
+    request = require('request'),
+    io = require('socket.io')(http),
+    Sequelize = require('sequelize'),
+    pg = require('pg').native,
+    memwatch = require('memwatch');
 
-var express = require('express'),
-    bodyParser = require('body-parser');
-var app = express(); app.use(bodyParser.json())
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var moment = require('moment');
-var _ = require('underscore');
+app.use(bodyParser.json())
 
-var Sequelize = require('sequelize')
-  , sequelize = new Sequelize(config.database.db_name,config.database.username,config.database.password, 
+var sequelize = new Sequelize(config.database.db_name,config.database.username,config.database.password, 
 	{port:config.database.db_port, dialect: config.database.db_dialect,logging:false})
-
-var pg = require('pg').native;
 
 //  Data Architecture
 
@@ -31,9 +30,8 @@ var Reading = sequelize.define('Reading', {
   //signal_quality: Sequelize.INTEGER,
 }); Reading.create(); Reading.sync()
 
-var connectedIndraClients = {};
-
 //  Routes
+
 app.get('/handshake', function(req, res){
   res.json({time:new Date()} )
 });
@@ -45,31 +43,23 @@ app.route('/')
 })
 .post(function(req, res, next) {
   processData(req.body)
-  res.json({status:'ok'}); //return confirmation of receipt
-})
-app.route('/chart')
-.get(function(req, res, next){
-  res.sendFile('chart.html', 
-    { root: path.join(__dirname, 'public') });
+  res.json({status:'ok'});
 })
 
 http.listen(config.port_number, function(){
-  console.log('server up. listening on ' + config.port_number);
+  console.log('Server listening on ' + config.port_number);
 });
 
-//  Socket.io
+// Initialize variables
 
-io.on('connection', function(socket) {
-  
-  socket.on('disconnect', function() {
-  })
-
-})
-
-// Handle Data
+var connectedIndraClients = {};
+var recentUsers = [];
+var recentData = [];
 
 function processData(d) {
-  // store in database
+  
+  // Store indra-client stream in database
+
   var reading = Reading.create({
     username:             d.username,
     start_time:           d.start_time,
@@ -83,29 +73,53 @@ function processData(d) {
     console.log(err)
   }).success(function() {
 
-    connectedIndraClients[d.username] = moment();
-    
-    io.emit('indraData', "User: " + d.username + " ... Attention: " + d.attention_esense)
-  
+    // user:time helper object to inform recentUsers array
+    connectedIndraClients[d.username] = new Date();
+    // Append to recentData array of objects that will be shipped to python
+    recentData.push({'username':d.username, 'start_time':d.start_time,'end_time':d.end_time,'data':d.raw_values})
+    // Emit indra-client data stream to web clients
+    io.emit('indraData', [{"username": d.username, "attention_esense": d.attention_esense}])
+
   }); 
 }
 
+// Interval Timer
+
 setInterval(function() {
 
-  recentUsers = [];
+  // Update Recent Users for Web Client
 
+  var now = new Date();
   for (var userKey in connectedIndraClients) {
-    if (connectedIndraClients[userKey].diff() < -15000) {
+    if (connectedIndraClients[userKey] - now < -10000) {
       delete connectedIndraClients[userKey];
     }
-    
     recentUsers.push(userKey);
-
   }
-
   io.emit('recentUsers', recentUsers);
+  recentUsers = [];
 
-}, 15000)
+  // Python Server Communication
+
+  request.post({url:'http://localhost:8989', json: recentData}
+  , function (error, response, body) {
+    if (error) {
+      console.log('error: ' + error)
+    } else {
+      console.log('success: ' + body)
+      // socket emit to connected browser clients
+    }
+  })
+
+}, 5000)
+
+// Memory Leak Debugger
+
+memwatch.on('stats', function(stats) {
+  console.log(JSON.stringify(stats));
+})
+
+
 
 
 
