@@ -16,8 +16,7 @@
 		<script>
 		var recentData = []; // Contains all users and their most recent attention value.
 		var chart; // The chart on which average attention data is displayed.
-		var socket = io('http://eegviz-dev.coolworld.me');
-		socket.on('connection',function(){console.log('connected to socket')})
+		var socket = io();
 		
 		/** Handles socket.io input. indraData contains one new data packet of one currently connected MindWave Mobile user.**/
 		socket.on('indraData', function(indraData) {

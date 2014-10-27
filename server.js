@@ -38,7 +38,7 @@ app.get('/handshake', function(req, res){
 
 app.route('/')
 .get(function(req, res, next){
-  res.sendFile('index.html', 
+  res.sendFile('chart.html', 
     { root: path.join(__dirname, 'public') });
 })
 
@@ -47,11 +47,11 @@ app.route('/')
   res.json({status:'ok'});
 })
 
-app.route('/chart')
+/*app.route('/chart')
 .get(function(req, res, next){
   res.sendFile('chart.html', 
     { root: path.join(__dirname, 'public') });
-})
+})*/
 
 http.listen(config.port_number, function(){
   console.log('Server listening on ' + config.port_number);
