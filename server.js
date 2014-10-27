@@ -54,7 +54,7 @@ http.listen(config.port_number, function(){
 
 var connectedIndraClients = {};
 var recentUsers = [];
-var recentData = [];
+//var recentData = [];
 
 function processData(d) {
   
@@ -76,7 +76,7 @@ function processData(d) {
     // user:time helper object to inform recentUsers array
     connectedIndraClients[d.username] = new Date();
     // Append to recentData array of objects that will be shipped to python
-    recentData.push({'username':d.username, 'start_time':d.start_time,'end_time':d.end_time,'data':d.raw_values})
+    //recentData.push({'username':d.username, 'start_time':d.start_time,'end_time':d.end_time,'data':d.raw_values})
     // Emit indra-client data stream to web clients
     io.emit('indraData', [{"username": d.username, "attention_esense": d.attention_esense}])
 
@@ -101,23 +101,27 @@ setInterval(function() {
 
   // Python Server Communication
 
-  request.post({url:'http://localhost:8989', json: recentData}
-  , function (error, response, body) {
-    if (error) {
-      console.log('error: ' + error)
-    } else {
-      console.log('success: ' + body)
-      // socket emit to connected browser clients
-    }
-  })
+  /*if (recentData.length > 0) {
+
+    request.post({url:'http://localhost:8989', json: recentData}
+    , function (error, response, body) {
+      if (error) {
+        //console.log('error: ' + error)
+      } else {
+        //console.log('success: ' + body)
+        // io.emit('pythonData',body)
+      }
+    })
+    recentData = [];*/
+  }
 
 }, 5000)
 
 // Memory Leak Debugger
 
-memwatch.on('stats', function(stats) {
+/*memwatch.on('stats', function(stats) {
   console.log(JSON.stringify(stats));
-})
+})*/
 
 
 
