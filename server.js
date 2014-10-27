@@ -41,9 +41,16 @@ app.route('/')
   res.sendFile('index.html', 
     { root: path.join(__dirname, 'public') });
 })
+
 .post(function(req, res, next) {
   processData(req.body)
   res.json({status:'ok'});
+})
+
+app.route('/chart')
+.get(function(req, res, next){
+  res.sendFile('chart.html', 
+    { root: path.join(__dirname, 'public') });
 })
 
 http.listen(config.port_number, function(){
@@ -96,8 +103,11 @@ setInterval(function() {
     }
     recentUsers.push(userKey);
   }
-  io.emit('recentUsers', recentUsers);
-  recentUsers = [];
+  
+  if (recentUsers.length > 0) {
+    io.emit('recentUsers', recentUsers);
+    recentUsers = [];
+  }
 
   // Python Server Communication
 
@@ -112,8 +122,8 @@ setInterval(function() {
         // io.emit('pythonData',body)
       }
     })
-    recentData = [];*/
-  }
+    recentData = [];
+  }*/
 
 }, 5000)
 

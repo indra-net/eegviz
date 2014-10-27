@@ -1,21 +1,26 @@
-<!doctype HTML>
+<!DOCTYPE HTML>
 <html>
-
   <head>
-    <title>eegviz</title>
+
+    <title>Indra Viz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
   </head>
   
-  
   <body>
-
+    <!-- Bootstrap JS -->
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- Chart -->
     <div id="currentlyConnected">
-      <h1>Currently Connected People:</h1>
-      <p>data</p>
+      <h1>Indra Users</h1>
     </div>
+    <!-- User List -->
 
+    <!-- socketIO -->
     <script src="https://cdn.socket.io/socket.io-1.1.0.js"></script>
     <script>
-    
       var socket = io();
 
       socket.on('indraData', function(indraData) {
@@ -25,7 +30,6 @@
       socket.on('recentUsers', function(recentUsers) {
         console.log(recentUsers);
       })
-
     </script>
 
   </body>
