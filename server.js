@@ -30,6 +30,10 @@ var Reading = sequelize.define('Reading', {
   //signal_quality: Sequelize.INTEGER,
 }); Reading.create(); Reading.sync()
 
+var Event = sequelize.define('Event', {
+  name: Sequelize.STRING,
+}); Event.sync()
+
 //  Routes
 
 app.get('/handshake', function(req, res){
@@ -45,6 +49,12 @@ app.route('/')
 .post(function(req, res, next) {
   processData(req.body)
   res.json({status:'ok'});
+})
+
+app.route('/event')
+.post(function(req, res, next) {
+  saveEvent(req.body)
+  res.json({status:'ok'}); //return confirmation of receipt
 })
 
 /*app.route('/chart')
@@ -88,6 +98,16 @@ function processData(d) {
     io.emit('indraData', [{"username": d.username, "attention_esense": d.attention_esense}])
 
   }); 
+}
+
+function saveEvent(d) {
+  var stimEvent = Event.create({
+    name:          d.name,
+  }).error(function(err) {
+    console.log(err)
+  }).success(function() {
+    console.log(d + ' saved');
+  });
 }
 
 // Interval Timer
