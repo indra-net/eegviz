@@ -33,7 +33,7 @@ var Reading = sequelize.define('Reading', {
 var Event = sequelize.define('Event', {
   name: Sequelize.STRING,
   start_time: Sequelize.DATE
-}); Event.sync()
+}); Reading.create(); Event.sync()
 
 //  Routes
 
