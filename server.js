@@ -32,6 +32,7 @@ var Reading = sequelize.define('Reading', {
 
 var Event = sequelize.define('Event', {
   name: Sequelize.STRING,
+  start_time: Sequelize.DATE
 }); Event.sync()
 
 //  Routes
@@ -103,10 +104,11 @@ function processData(d) {
 function saveEvent(d) {
   var stimEvent = Event.create({
     name:          d.name,
+    start_time:    d.start_time, 
   }).error(function(err) {
     console.log(err)
   }).success(function() {
-    console.log(d + ' saved');
+    console.log(d.name + ' saved');
   });
 }
 
