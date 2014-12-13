@@ -140,7 +140,7 @@ function saveEvent(d) {
 function checkDB() {
   // Get last four rows since most recent blink event
   sequelize
-    .query('SELECT count(*) FROM P300')
+    .query('SELECT count(*) FROM "P300"')
     .success(function(rows) {
       console.log(rows);
     })
