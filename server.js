@@ -30,9 +30,9 @@ var Reading = sequelize.define('Reading', {
   //signal_quality: Sequelize.INTEGER,
 }); Reading.create(); Reading.sync()
 
-var Muse = sequelize.define('Muse', {
+/*var Muse = sequelize.define('Muse', {
   //raw_values: Sequelize.ARRAY(Sequelize.INTEGER)
-}); Muse.create(); Muse.sync()
+}); Muse.create(); Muse.sync()*/
 
 var Event = sequelize.define('Event', {
   name: Sequelize.STRING,
@@ -60,11 +60,11 @@ app.route('/')
     res.json({status:'ok'});
   })
 
-app.route('/muse')
+/*app.route('/muse')
   .post(function(req, res, next) {
     processMuse(req.body)
     res.json({status:'ok'}); //return confirmation of receipt
-  })
+  })*/
 
 app.route('/event')
   .post(function(req, res, next) {
@@ -115,7 +115,7 @@ function processData(d) {
   }); 
 }
 
-function processMuse(d) {
+/*function processMuse(d) {
   var museEvent = Muse.create({
     // save to db
 
@@ -124,7 +124,7 @@ function processMuse(d) {
   }).success(function() {
     // do stuff
   })
-}
+}*/
 
 function saveEvent(d) {
   var stimEvent = Event.create({
