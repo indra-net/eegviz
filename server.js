@@ -39,20 +39,24 @@ var Event = sequelize.define('Event', {
   start_time: Sequelize.DATE
 }); Reading.create(); Event.sync()
 
+http.listen(config.port_number, function(){
+  console.log('Server listening on ' + config.port_number);
+});
+
 //  Routes
 
 app.get('/handshake', function(req, res){
-  res.json({time:new Date()} )
+  res.json({time:new Date()})
 });
 
 app.get('/db-update', function(req, res) {
-  checkDB()
+  checkDB(req.body)
+  res.json({status:'ok'});
 });
 
 app.route('/')
   .get(function(req, res, next){
-    res.sendFile('chart.html', 
-      { root: path.join(__dirname, 'public') });
+    res.sendFile('attentionMeter.html', {root: path.join(__dirname, 'public')});
   })
 
   .post(function(req, res, next) {
@@ -71,16 +75,6 @@ app.route('/event')
     saveEvent(req.body)
     res.json({status:'ok'}); //return confirmation of receipt
   })
-
-/*app.route('/chart')
-.get(function(req, res, next){
-  res.sendFile('chart.html', 
-    { root: path.join(__dirname, 'public') });
-})*/
-
-http.listen(config.port_number, function(){
-  console.log('Server listening on ' + config.port_number);
-});
 
 // Initialize variables
 
@@ -140,13 +134,16 @@ function saveEvent(d) {
 function checkDB(experiment) {
 
   sequelize
-    .query('SELECT * FROM P300 WHERE exp = experiment')
+    .query('SELECT * FROM "P300" WHERE exp = '+ experiment +'')
     .success(function(pyData) {
-      console.log(pyData);
-    })
+      //console.log(pyData);
 
-  // Emit socket data to web client
-  io.emit('P300', pyData);
+      //pyData.length
+      for (var name in pyData) {
+        console.log(name)
+      }
+      //io.emit('P300', pyData);
+    })
 
 }
 
@@ -166,11 +163,6 @@ setInterval(function() {
     io.emit('recentUsers', recentUsers);
     recentUsers = [];
   }
-
-  // Poll DB Python Schema
-
-  checkDB(-1); // Delete once python POST has been implemented
-
 
 }, 5000)
 
