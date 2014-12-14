@@ -139,8 +139,8 @@ function checkDB(experiment) {
       //console.log(pyData);
 
       //pyData.length
-      for (var name in pyData) {
-        console.log(name)
+      for (var i = 0, i < pyData.length, i++) {
+        console.log(pyData[i].name);
       }
       //io.emit('P300', pyData);
     })
