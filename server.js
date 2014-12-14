@@ -137,6 +137,7 @@ function checkDB(experiment) {
     .query('SELECT * FROM "P300" WHERE exp = '+ experiment +'')
     .success(function(pyData) {
       io.emit('P300', pyData);
+      console.log(pyData);
     })
 
 }
