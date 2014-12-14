@@ -50,7 +50,7 @@ app.get('/handshake', function(req, res){
 });
 
 app.get('/db-update', function(req, res) {
-  checkDB(req.body)
+  checkDB(req.query.experiment);
   res.json({status:'ok'});
 });
 
@@ -136,13 +136,7 @@ function checkDB(experiment) {
   sequelize
     .query('SELECT * FROM "P300" WHERE exp = '+ experiment +'')
     .success(function(pyData) {
-      //console.log(pyData);
-
-      //pyData.length
-      for (var i = 0; i < pyData.length; i++) {
-        console.log(pyData[i].card_name);
-      }
-      //io.emit('P300', pyData);
+      io.emit('P300', pyData);
     })
 
 }
@@ -163,8 +157,6 @@ setInterval(function() {
     io.emit('recentUsers', recentUsers);
     recentUsers = [];
   }
-
-  checkDB(-1)
 
 }, 5000)
 
