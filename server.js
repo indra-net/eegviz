@@ -140,7 +140,7 @@ function checkDB(experiment) {
 
       //pyData.length
       for (var i = 0; i < pyData.length; i++) {
-        console.log(pyData[i].name);
+        console.log(pyData[i].card_name);
       }
       //io.emit('P300', pyData);
     })
