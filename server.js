@@ -139,7 +139,7 @@ function checkDB(experiment) {
       //console.log(pyData);
 
       //pyData.length
-      for (var i = 0, i < pyData.length, i++) {
+      for (var i = 0; i < pyData.length; i++) {
         console.log(pyData[i].name);
       }
       //io.emit('P300', pyData);
@@ -163,6 +163,8 @@ setInterval(function() {
     io.emit('recentUsers', recentUsers);
     recentUsers = [];
   }
+
+  checkDB(-1)
 
 }, 5000)
 
