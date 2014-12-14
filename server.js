@@ -137,22 +137,16 @@ function saveEvent(d) {
   });
 }
 
-function checkDB() {
-  // Get last four rows since most recent blink event
-  sequelize
-    .query('SELECT count(*) FROM "P300"')
-    .success(function(rows) {
-      console.log(rows);
-    })
+function checkDB(experiment) {
 
-  /*sequelize
-    .query('SELECT * FROM P300 WHERE ')
+  sequelize
+    .query('SELECT * FROM P300 WHERE exp = experiment')
     .success(function(pyData) {
       console.log(pyData);
     })
 
   // Emit socket data to web client
-  io.emit('P300', pyData);*/
+  io.emit('P300', pyData);
 
 }
 
@@ -175,7 +169,7 @@ setInterval(function() {
 
   // Poll DB Python Schema
 
-  checkDB();
+  checkDB(-1); // Delete once python POST has been implemented
 
 
 }, 5000)
