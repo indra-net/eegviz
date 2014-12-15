@@ -134,7 +134,7 @@ function saveEvent(d) {
 function checkDB(experiment) {
 
   sequelize
-    .query('SELECT * FROM "P300" WHERE exp = '+ experiment +'')
+    .query('SELECT * FROM "P300" WHERE exp = '+ experiment +' DESC limit 4')
     .success(function(pyData) {
       io.emit('P300', pyData);
       console.log(pyData);
