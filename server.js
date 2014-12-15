@@ -50,7 +50,7 @@ app.get('/handshake', function(req, res){
 });
 
 app.get('/db-update', function(req, res) {
-  checkDB(req.query.experiment);
+  checkDB(req.query.experiment); // Append experiment number to URI i.e. "/db-update/?experiment=-1"
   res.json({status:'ok'});
 });
 
