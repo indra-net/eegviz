@@ -20,13 +20,13 @@
 		
 		/** Handles socket.io input. indraData contains one new data packet of one currently connected MindWave Mobile user.**/
 		socket.on('indraData', function(indraData) {
-			//console.log(indraData[0].username + ": " + indraData[0].attention_esense);
+			console.log(indraData[0].username + ": " + indraData[0].attention_esense);
 			updateRecentData(indraData);
 		})
 		
 		/** Handles socket.io input. recentUsers contains all currently connected MindWave Mobile users. **/
 		socket.on('recentUsers', function(recentUsers) {
-			//console.log("Connected users: " + recentUsers);
+			console.log("Connected users: " + recentUsers);
 			cleanRecentData(recentUsers);
 		})
 		
