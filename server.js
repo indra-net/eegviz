@@ -1,24 +1,24 @@
-// 0  setup
+//  Setup
 var _ = require('underscore'),
-    http = require('http'),
-    path = require('path')
-var config = require('./config')
+    path = require('path'),
+    config = require('./config'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    app = express(),
+    http = require('http').Server(app),
+    request = require('request'),
+    io = require('socket.io')(http),
+    Sequelize = require('sequelize'),
+    pg = require('pg').native,
+    memwatch = require('memwatch');
 
-var express = require('express'),
-    bodyParser = require('body-parser');
-var app = express(); app.use(bodyParser.json())
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+app.use(bodyParser.json())
 
-var Sequelize = require('sequelize')
-  , sequelize = new Sequelize(config.database.db_name,config.database.username,config.database.password, 
+var sequelize = new Sequelize(config.database.db_name,config.database.username,config.database.password, 
 	{port:config.database.db_port, dialect: config.database.db_dialect,logging:false})
-var pg = require('pg').native;
 
-var recent_data = { }
+//  Data Architecture
 
-
-//  1   data 
 var Reading = sequelize.define('Reading', {
   username: Sequelize.STRING,
   start_time: Sequelize.DATE,
@@ -30,57 +30,67 @@ var Reading = sequelize.define('Reading', {
   //signal_quality: Sequelize.INTEGER,
 }); Reading.create(); Reading.sync()
 
+/*var Muse = sequelize.define('Muse', {
+  //raw_values: Sequelize.ARRAY(Sequelize.INTEGER)
+}); Muse.create(); Muse.sync()*/
 
-//  2    routes
+var Event = sequelize.define('Event', {
+  name: Sequelize.STRING,
+  start_time: Sequelize.DATE
+}); Reading.create(); Event.sync()
+
+http.listen(config.port_number, function(){
+  console.log('Server listening on ' + config.port_number);
+});
+
+//  Routes
+
 app.get('/handshake', function(req, res){
-  res.json({time:new Date()} )
+  res.json({time:new Date()})
+});
+
+app.get('/db-update', function(req, res) {
+  checkDB(req.query.experiment); // Append experiment number to URI i.e. "/db-update/?experiment=-1"
+  res.json({status:'ok'});
 });
 
 app.route('/')
-.get(function(req, res, next){
-  res.sendFile('index.html', 
-    { root: path.join(__dirname, 'public') });
-})
-.post(function(req, res, next) {
-  processData(req.body)
-  res.json({status:'ok'}); //return confirmation of receipt
-})
+  .get(function(req, res, next){
+    res.sendFile('attentionMeter.html', {root: path.join(__dirname, 'public')});
+  })
 
-io.on('connection', function(socket) {
-   
-   socket.emit('attention_average', function() {
-       // this is where you send average attention to a new user
-   })
-   
-   socket.on('whats the data', function() {
-      socket.emit('heres the data', JSON.stringify(recent_data))
-    })
-  
-   socket.on('send_application_type', function(msg) {
-      socket.application_type = msg;
-      console.log ('requested application type: ' + socket.application_type);
-    })
+  .post(function(req, res, next) {
+    processData(req.body)
+    res.json({status:'ok'});
+  })
 
-    socket.on('disconnect', function() {
-       //for example: remove socket.username from userlist
-    })
- 
-   console.log('new connection from webpage');
-})
+/*app.route('/muse')
+  .post(function(req, res, next) {
+    processMuse(req.body)
+    res.json({status:'ok'}); //return confirmation of receipt
+  })*/
 
-http.listen(config.port_number, function(){
-  console.log('listening on ' + config.port_number);
-});
+app.route('/event')
+  .post(function(req, res, next) {
+    saveEvent(req.body)
+    res.json({status:'ok'}); //return confirmation of receipt
+  })
 
+// Initialize variables
 
+var connectedIndraClients = {};
+var recentUsers = [];
+//var recentData = [];
 
 function processData(d) {
-  // store in database
+  
+  // Store indra-client stream in database
+
   var reading = Reading.create({
     username:             d.username,
     start_time:           d.start_time,
     end_time:             d.end_time,
-    //signal_quality:       d.signal_quality,
+    signal_quality:       d.signal_quality,
     raw_values:           d.raw_values,
     attention_esense:     d.attention_esense,
     meditation_esense:    d.meditation_esense,
@@ -88,14 +98,81 @@ function processData(d) {
   }).error(function(err) {
     console.log(err)
   }).success(function() {
-    // safe to store in object
-    // TODO: send to python and store in object there? feature extraction?
-    recent_data[d.username] = { attention:d.attention_esense,
-                                time:d.end_time,}
-    console.log(d.username)
+
+    // user:time helper object to inform recentUsers array
+    connectedIndraClients[d.username] = new Date();
+    // Append to recentData array of objects that will be shipped to python
+    //recentData.push({'username':d.username, 'start_time':d.start_time,'end_time':d.end_time,'data':d.raw_values})
+    // Emit indra-client data stream to web clients
+    io.emit('indraData', [{"username": d.username, "attention_esense": d.attention_esense}])
+
+  }); 
+}
+
+/*function processMuse(d) {
+  var museEvent = Muse.create({
+    // save to db
+
+  }).error(function(err) {
+    console.log(err)
+  }).success(function() {
+    // do stuff
+  })
+}*/
+
+function saveEvent(d) {
+  var stimEvent = Event.create({
+    name:          d.name,
+    start_time:    d.start_time, 
+  }).error(function(err) {
+    console.log(err)
+  }).success(function() {
+    console.log(d.name + ' saved');
   });
 }
-   
+
+function checkDB(experiment) {
+
+  sequelize
+    .query('SELECT * FROM "P300" WHERE exp = '+ experiment +'')
+    .success(function(pyData) {
+      io.emit('P300', pyData);
+      console.log(pyData);
+    })
+
+}
+
+// Interval Timer
+
+setInterval(function() {
+  // Update Recent Users for Web Client
+  var now = new Date();
+  for (var userKey in connectedIndraClients) {
+    if (connectedIndraClients[userKey] - now < -10000) {
+      delete connectedIndraClients[userKey];
+    }
+    recentUsers.push(userKey);
+  }
+  
+  if (recentUsers.length > 0) {
+    io.emit('recentUsers', recentUsers);
+    recentUsers = [];
+  }
+
+}, 5000)
+
+// Memory Leak Debugger
+
+/*memwatch.on('stats', function(stats) {
+  console.log(JSON.stringify(stats));
+})*/
+
+
+
+
+
+
+
 
 
 

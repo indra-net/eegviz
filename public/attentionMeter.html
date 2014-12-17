@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>eegviz</title>
+		
+		
+		<!-- 1. Add these JavaScript inclusions in the head of your page -->
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.js"></script>
+		<script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.1.0.js"></script>
+		
+		
+		<!-- 2. Add the JavaScript to initialize the chart on document ready -->
+		<script>
+		var recentData = []; // Contains all users and their most recent attention value.
+		var chart; // The chart on which average attention data is displayed.
+		var socket = io();
+		
+		/** Handles socket.io input. indraData contains one new data packet of one currently connected MindWave Mobile user.**/
+		socket.on('indraData', function(indraData) {
+			console.log(indraData[0].username + ": " + indraData[0].attention_esense);
+			updateRecentData(indraData);
+		})
+		
+		/** Handles socket.io input. recentUsers contains all currently connected MindWave Mobile users. **/
+		socket.on('recentUsers', function(recentUsers) {
+			console.log("Connected users: " + recentUsers);
+			cleanRecentData(recentUsers);
+		})
+		
+		/** Calculates the average attention of all currently connected MindWave clients. **/
+		function calcAvgAttention() {
+			var avgAttention = 0;
+			if (recentData.length <= 0) {
+				return avgAttention;
+			}
+			for(var i=0; i<recentData.length; i++) {
+				avgAttention = avgAttention + recentData[i].data;
+			}
+			return avgAttention/recentData.length;
+		}
+		
+		/** Updates the list with recent users. New users are added. For existing users, the attention value is updated. **/
+		function updateRecentData(incomingPacket) {
+			var foundMatch = false;
+			for(var i=0; i<recentData.length; i++) {
+				if(recentData[i].name == incomingPacket[0].username) {
+					recentData[i].data = incomingPacket[0].attention_esense;
+					foundMatch = true;
+				}
+			}
+			if(!foundMatch) {
+				recentData.push({"name": incomingPacket[0].username, "data": incomingPacket[0].attention_esense});
+			}
+		}
+		
+		/** Cleans the list with recent users. All users that are not part of the recent user array are removed. **/
+		function cleanRecentData(recentUsers) {
+			var newRecentData = [];
+			for(var i=0; i<recentData.length; i++) {
+				var foundMatchingName = false;
+				var j = 0;
+				while (j < recentUsers.length && !foundMatchingName) {
+					if(recentData[i].name == recentUsers[j]) {
+						foundMatchingName = true;
+						newRecentData.push(recentData[i]);
+					} else {
+						j = j + 1;
+					}
+				}
+			}
+			recentData = newRecentData;
+		}
+		
+		$(document).ready(function() {
+			chart = new Highcharts.Chart({
+				chart: {
+					renderTo: 'container',
+					defaultSeriesType: 'spline',
+					events: {
+						load: function () {
+						
+							var series;
+							var shift;
+
+                        // set up the updating of the chart each second
+                        setInterval(function () {
+                            var x = (new Date()).getTime(), // current time, somehow leads to weird results
+                                y = calcAvgAttention();
+							//console.log("AVG: " + calcAvgAttention());
+							series = chart.series[0];
+							shift = series.data.length > 20; // shift if the series is longer than 20
+                            series.addPoint([x, y], true, shift);
+                        }, 1000);
+						
+						}
+					}
+				},
+				title: {
+					text: 'Group Attention Meter'
+				},
+				xAxis: {
+					type: 'datetime',
+					tickInterval: 5*1000,
+					maxZoom: 20 * 1000,
+					title: {
+						text: 'Time'
+					}
+				},
+				yAxis: {
+					minPadding: 0.2,
+					maxPadding: 0.2,
+					title: {
+						text: 'Average Attention Value',
+						margin: 80
+					}
+				},
+				series: [{
+					name: 'Attention Data',
+					data: []
+				}]
+			});		
+		});
+		</script>
+		
+	</head>
+	<body>
+		
+		<!-- 3. Add the container -->
+		<div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>
+		
+	</body>
+</html>
