@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+	<head>
+		
+		<title>P300 Magician</title>
+		
+		<script src='Chart.min.js'></script>
+		<script src="https://cdn.socket.io/socket.io-1.1.0.js"></script>
+		<script>
+
+		//var socket = io();
+
+		var socket = io.connect('http://eegviz-dev.coolworld.me');
+		//var socket = io('http://eegviz-dev.coolworld.me:11014');
+
+		// 11014
+		// Python does the get 11014
+		// eegviz-dev.coolworld.me/db-update/?experiment=-1
+		// sends the experiment number for node to update 
+
+		// node will then get all the data from the experiment of the get
+		// node 
+
+		//Billy is emitting a 'P300 socket'
+
+		// Get the context of the canvas element we want to select
+
+		//Doesn't hurt to have the aggregate data coming in as well
+
+		/*
+		socket.on('indraData', function(indraData) {
+			//console.log(indraData);
+			console.log(indraData[0].username + " " + indraData[0].attention_esense);
+			updateRecentData(indraData);
+		})
+		*/
+
+
+		socket.on('P300', function(P300) {
+			//console.log(indraData);
+			console.log(P300[0]);
+			//P300Chart.datasets[0].points[2].value = 50;
+			// Would update the first dataset's value of 'March' to be 50
+			// 
+			// console.log(P300data[0].name + " " + P300data[0].name);
+			//temp0 = P300[0].avg_values;
+			//temp1 = P300[1].avg_values;
+			//temp2 = P300[2].avg_values;
+			//temp3 = P300[3].avg_values;
+
+			var arr = P300[0].avg_values;
+			console.log(arr)
+			// var i = 0;
+			// var j = 0; 
+
+			
+			for (var i=0; i < 4; i++) {
+				console.log(P300[i]);
+				for (var j=0; j < P300[i].avg_values.length; j++) {
+					myLineChart.datasets[i].points[j].value	= P300[i].avg_values[j]
+					//print P300[i].avg_values[j];
+				}
+
+				
+			}
+
+			/*
+			stimulus[50] = P300[i].avg_values[50]
+			pwindow[320] = P300[i].avg_values[320]
+			pwindow[380] = P300[i].avg_values[380]
+			*/
+			
+			myLineChart.datasets[4].points[50].value = P300[3].avg_values[50]
+			myLineChart.datasets[5].points[150].value = P300[3].avg_values[150]
+			myLineChart.datasets[5].points[250].value = P300[3].avg_values[250]
+
+			myLineChart.update();
+			/* Have to iterate for each non-Target dataset?
+			function setAll(a, v) {
+				    var i, n = a.length;
+				    
+
+				    for (i = 0; i < n; ++i) {
+				        a[i] = v;
+				    }
+				}
+			*/
+			
+			
+
+			// myLineChart.datasets[0].points[4].value = temp0[4]
+			//myLineChart.datasets[0].points = arr;
+			//myLineChart.datasets[0].points[2].value = 400;
+			//arr = P300[0].avg_values;
+			
+		})
+		</script>	
+	</head>
+
+	<body>
+		<p>P300 Magician </p>
+		<canvas id="P300Chart" width="1800" height="800"></canvas>
+		
+		<!-- <img src="http://ecx.images-amazon.com/images/I/51wOn236UwL._SL500_AA280_.jpg"></img> -->
+		<script>
+		
+		var labelyeah = [];
+		var arr = [];
+		var stimulus = [];
+		var pwindow = [];
+		
+
+		for (var i = 0, l = 425; i < l; i++) {
+    		arr.push(Math.round(Math.random() * l));
+    		arr.push(500);
+    		stimulus.push(null);
+    		pwindow.push(null);
+    		labelyeah[i] = " ";
+		}
+
+		stimulus[50] = arr[50]
+		pwindow[150] = arr[150]
+		pwindow[250] = arr[250]
+
+		/*
+		var labelyeah = [];
+
+		for (var i = 0, w = 425; i < w; i++) {
+    		labelyeah[i] = null;
+	    	if (i == 100 ) {
+	    		label[i] ="ok"
+	    	}
+    		
+
+		}
+		*/
+		// ["hi", null, "theree","should","work","neat", "does"],
+
+		var ctx = document.getElementById("P300Chart").getContext("2d");
+		var data = {
+				    labels: labelyeah, 
+
+				    datasets: [
+				        {
+				            label: "non-Target1",
+				            fillColor: "rgba(220,220,220,0.1)",
+				            //fillColor: "transparent",
+				            strokeColor: "rgba(220,220,220,1)",
+				            pointColor: "transparent",
+				            pointStrokeColor: "transparent",
+				            pointHighlightFill: "transparent",
+				            pointHighlightStroke: "transparent",
+				            data: arr,
+				            //data: [65, 59, 80, 81, 56, 55, 40]
+				            //data:[28, 64, 33, 26, 32, 55, 43],
+				            //  data: non-Target1.avg_values
+				        },
+
+				        {
+				            label: "non-Target2",
+				            fillColor: "rgba(220,220,220,0.1)",
+				            //fillColor: "transparent",
+				            strokeColor: "rgba(220,220,220,1)",
+				            pointColor: "transparent",
+				            pointStrokeColor: "transparent",
+				            pointHighlightFill: "transparent",
+				            pointHighlightStroke: "transparent",
+				            //data: [65, 59, 80, 81, 56, 55, 40]
+				            //data:[28, 64, 33, 26, 32, 55, 43],
+				            //data: P300[0].avg_values,
+				            data: arr, 
+				            //  data: non-Target1.avg_values
+				        },
+
+				        {
+				            label: "non-Target3",
+				            fillColor: "rgba(220,220,220,0.1)",
+				            //fillColor: "transparent",
+				            strokeColor: "rgba(220,220,220,1)",
+				            pointColor: "transparent",
+				            pointStrokeColor: "transparent",
+				            pointHighlightFill: "transparent",
+				            pointHighlightStroke: "transparent",
+				            //data: [65, 59, 80, 81, 56, 55, 40]
+				            //data: P300[0].avg_values
+				            data: arr,
+				            //data:[28, 64, 33, 26, 32, 55, 43],
+				            //  data: non-Target1.avg_values
+				        },
+
+
+				        {
+				            label: "Target",
+				            fillColor: "rgba(151,187,205,0.2)",
+				            strokeColor: "rgba(151,187,205,1)",
+				            pointColor: "transparent",
+				            pointStrokeColor: "transparent",
+				            pointHighlightFill: "transparent",
+				            pointHighlightStroke: "transparent",
+				            data: arr,
+				            //data: P300[0].avg_values,
+				            //data: [28, 48, 40, 19, 86, 27, 130]
+				        },
+
+				        {
+				            label: "stimulus",
+				            fillColor: "transparent",
+				            strokeColor: "transparent",
+				            pointColor: "rgba(30,243,23,10)",
+				            pointStrokeColor: "#fff",
+				            pointHighlightFill: "#fff",
+				            pointHighlightStroke: "rgba(151,187,205,1)",
+				            data: stimulus,
+				            //data: P300[0].avg_values
+				            //data: [null, 48, null, null, null, null, null]
+				        },
+
+				        {
+				            label: "P300window",
+				            fillColor: "transparent",
+				            strokeColor: "transparent",
+				            pointColor: "rgba(151,17,25,1)",
+				            pointStrokeColor: "#fff",
+				            pointHighlightFill: "#fff",
+				            pointHighlightStroke: "rgba(151,187,205,1)",
+				            data: pwindow,
+				            //data: P300[0].avg_values
+				            //data: [null, null, null, 19, null, 27, null]
+				        }
+				    ]
+				};
+		var lineChartOptions = {
+							pointDotRadius : 8,
+
+						}
+		//Chart.defaults.global = {			
+		
+		//Chart.defaults.global.scaleShowLabels: false;
+
+
+		var myLineChart = new Chart(ctx).Line(data, lineChartOptions);
+		//myLineChart.datasets[0].points[2].value = 165;
+
+		//myLineChart.datasets[0].points[2].value = 165;
+		
+		myLineChart.update();
+
+		//duh = [128, 164, 133, 136, 132, 155, 143]
+
+		//myLineChart.datasets[0].points[4].value = duh[4];
+
+		/* stuffit = {
+				            "label": "non-Target1",
+				            "fillColor": "rgba(220,220,220,0.1)",
+				            //fillColor: "transparent",
+				            "strokeColor": "rgba(220,220,220,1)",
+				            "pointColor": "transparent",
+				            "pointStrokeColor": "transparent",
+				            "pointHighlightFill": "transparent",
+				            "pointHighlightStroke": "transparent",
+				            "data": [128, 164, 133, 126, 132, 155, 143]
+				            //data:[28, 64, 33, 26, 32, 55, 43],
+				            //  data: non-Target1.avg_values
+				        }
+
+		 myLineChart.datasets[0] = stuffit */
+
+
+
+
+		
+		
+		</script>
+
+	</body>
+		
+</html>
